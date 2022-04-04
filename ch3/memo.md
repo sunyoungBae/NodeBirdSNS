@@ -199,3 +199,22 @@ const reducer = (state = initialState, action) => {
     }
 };
 ```
+
+# 게시글 구현하기
+...
+
+# 댓글 구현하기
+...
+
+# 이미지 구현하기
+
+# 이미지 캐루셀 구현하기(react-slick)
+react-slick : 캐루셀 중에 가장 유명한 컴포넌트
+
+설치 : `npm i react-slick`
+
+각 옵션은 공식문서에 존재.
+
+# 글로벌 스타일과 컴포넌트 폴더 구조
+
+# 게시글 해시태그 링크로 만들기
