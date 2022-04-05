@@ -217,4 +217,27 @@ react-slick : 캐루셀 중에 가장 유명한 컴포넌트
 
 # 글로벌 스타일과 컴포넌트 폴더 구조
 
+### styled 컴포넌트의 글로벌 스타일
+
+글로벌 스타일 : `import { createGlobalStyle } from 'styled-components';`
+* 기존에 있는 css 스타일을 덮어쓴다.
+* classname 그대로 들어간다.
+
+기존 스타일 : `import styled from 'styled-components';`
+* styled 생성시 html을 보면 classname이 다른 컴포넌트와 겹치지 않게 자동으로 변경됨
+
+### 컴포넌트 폴더 구조
+핵심 로직과 아닌것을 분리하기 위해 사용한다.
+* 가장 중요한 파일 : index.js
+* 나머지 파일 : 따로 파일을 만들어서 작성 후 index.js에서 import
+  * 재사용 편리
+  * ex) styles.js
+    1. 기존 index.js파일에 존재하던 styled 컴포넌트를 옮긴다.
+    2.  컴포넌트에 모두 `export` 붙인다.
+    3.  index.js에서 styles.js를 임포트해서 사용한다.
+
+
 # 게시글 해시태그 링크로 만들기
+
+### 정규식
+regexr.com 사이트에서 테스트 가능
