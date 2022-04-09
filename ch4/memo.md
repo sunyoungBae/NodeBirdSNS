@@ -83,7 +83,7 @@ function* logIn() {
     } 
 }
 
-function* watchLogIn() {
+function* watchLogIn() { // 이벤트 리스너 같은 역할
     yield take('LOG_IN_REQUEST', logIn);
 }
 
@@ -106,3 +106,47 @@ export default function* rootSaga() {
 
 제너레이터를 사용하면 `yield`를 사용해 테스트하기 편리해진다.
 * `.next()`를 사용해 단계별로 테스트 가능
+
+# take, take 시리즈, throttle 알아보기
+`take`는 일회성이여서 한번 실행되면 사라진다.(`watchLogIn`)
+
+사라지지 않게 하려면?
+* `while(true)` 사용
+  * 동기적으로 동작
+* `takeEvery` 사용
+  * 비동기로 동작
+  * 반복문보다 직관적
+* `takeLatest`
+  * 클릭 실수로 여러 번 눌러질때 마지막 것만 실행
+  * 여러번 요청에 대한 응답을 취소한다.
+    * 서버쪽에서 같은 내용이 연달아 온건지 검사해야한다.
+    * 요청은 취소할 수 없다.
+  * 보통은 이걸 많이 쓴다.
+* `takeLeading`
+  * 첫번째 클릭만 실행
+
+`throttle`
+* 지정된 시간 동안 한번만 실행한다.
+* `takeLatest`와 달리 요청도 제한을 둔다.
+* `yield throttle('ACTION_REQUEST', action, 2000)`
+
+# saga 쪼개고 reducer와 연결하기
+FLOW
+1. <LoginForm>
+   1. id, password 적고 Login 버튼 클릭
+   2. onSubmitForm > loginRequesetAction이 실행
+2. reducers/user.js : sagas와 거의 동시해 실행됨
+   1. reducer() > case 'LOG_IN_REQUEST' 실행
+3. sagas/user.js
+   1. watchLogIn() 실행
+   2. logIn() 실행 : 1초 후 reducers > LOG_IN_SUCCESS 실행
+4. reducers/user.js
+   1. reducer() > case 'LOG_IN_SUCCESS' 실행
+      1. isLoggedIn: true, `me`에 데이터가 들어감
+5. AppLayout.js
+   1. 변겅된 데이터에 맞게 다시 렌더링됨
+
+# 액션과 상태 정리하기
+
+
+# 바뀐 상태 적용하고 eslint 점검하기

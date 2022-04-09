@@ -1,6 +1,17 @@
 import styled, { createGlobalStyle } from 'styled-components';
 import { CloseOutlined } from '@ant-design/icons';
 
+// styled 컴포넌트가 기존 slick의 css를 변경할 수 있도록 지원한다.
+export const Global = createGlobalStyle`
+    .slick-slide {
+        display: inline-block;
+    }
+
+    .ant-card-cover {
+        trasform: none !important;
+    }
+`;
+
 export const Overlay = styled.div`
     position: fixed;
     z-index: 5000;
@@ -62,16 +73,5 @@ export const Indicator = styled.div`
         text-align: center;
         color: white;
         font-size: 15px;
-    }
-`;
-
-// styled 컴포넌트가 기존 slick의 css를 변경할 수 있도록 지원한다.
-export const Global = createGlobalStyle`
-    .slick-slide {
-        display: inline-block;
-    }
-
-    .ant-card-cover {
-        trasform: none !important;
     }
 `;
