@@ -131,7 +131,7 @@ export default function* rootSaga() {
 * `yield throttle('ACTION_REQUEST', action, 2000)`
 
 # saga 쪼개고 reducer와 연결하기
-FLOW
+FLOW 이해
 1. <LoginForm>
    1. id, password 적고 Login 버튼 클릭
    2. onSubmitForm > loginRequesetAction이 실행
@@ -147,6 +147,70 @@ FLOW
    1. 변겅된 데이터에 맞게 다시 렌더링됨
 
 # 액션과 상태 정리하기
-
+...
 
 # 바뀐 상태 적용하고 eslint 점검하기
+...
+
+# 게시글, 댓글 saga 작성하기
+
+### 복잡한 구조의 데이터를(댓글 추가) 불변성에 맞게 변경하는 법
+comment 구조
+```javascript
+mainPosts: [{
+    id: 1,
+    User: { }, // 게시글 작성자
+    content: '', // 게시글 내용
+    Images: [], // 게시글 이미지
+    Comments: [{    // 댓글
+        User: { // 댓글 작성자
+            nickname: 'nero',
+        },
+        content: '우와 개정판이 나왔군요~', // 댓글 내용
+    }, ...]
+}],
+```
+
+댓글 추가시 `mainPosts`에 불변성을 유지하며 추가하는 법
+```javascript
+// 게시글의 id로 게시글 index 찾기
+const postIndex = state.mainPosts.findIndex((v) => v.id === action.data.postId);
+// target 게시글 복사 후 댓글만 앞에 추가
+const post = { ...state.mainPosts[postIndex] };
+post.Comments = [dummyComment(action.data.content), ...post.Comments];
+// 현재 mainPosts에서 변경된 것만 반영
+const mainPosts = [...state.mainPosts];
+mainPosts[postIndex] = post;
+```
+
+### Tips
+Warning: Encountered two children with the same key, `2`.
+* 게시글 id가 고정값이여서 동일한 key가 있다는 에러 발생
+* id를 랜덤하게 만들기
+  * npm i shortid
+    * 겹치기 힘든 아이디를 생성
+
+# 게시글 삭제 saga 작성하기
+### 게시글 추가시 사용자 정보에도 연동하기
+현재 게시글은 post reducer, 사용자 정보는 user reducer에 있다.
+* 각 reducer에서는 내부의 정보만 변경할 수 있다. ex) post reducer에서는 user reducer의 정보를 직접적으로 변경할 수 없다.
+
+게시글 추가시 사용자 정보를 연동하기 위해서는 user reducer에 액션을 추가해 post reducer에서 호출하면 된다.
+* why?
+  * 데이터 변경은 action을 통해서만 변경할 수 있다.
+  * saga는 여러 액션을 동시에 디스패치 가능하다.
+* 방법
+  * user reducer
+    * 내 게시글 추가 액션 생성 : `ADD_POST_TO_ME`
+    * 액션이 디스패치될 때 동작 정의
+  * post saga에서 게시글 등록시 user 액션을 호출한다.
+    ```javascript
+    yield put( {
+        type: ADD_POST_TO_ME,
+        data: id,
+    });
+    ```
+
+### 게시글 삭제
+게시글 삭제는 filter 함수를 이용한다.
+`Posts: state.me.Posts.filter((v) => v.id !== action.data)`
