@@ -214,3 +214,116 @@ Warning: Encountered two children with the same key, `2`.
 ### 게시글 삭제
 게시글 삭제는 filter 함수를 이용한다.
 `Posts: state.me.Posts.filter((v) => v.id !== action.data)`
+
+# immer 도입하기
+대부분의 경우 ... 연산자 또는 배열 내장함수를 사용하는건 그렇게 어렵지는 않지만 데이터의 구조가 조금 까다로워지면 불변성을 지켜가면서 새로운 데이터를 생성해내는 코드가 조금 복잡해집니다.
+
+=> immer가 자동으로 불변성을 지켜주기 때문에 불변성을 지키지 않고 코드를 작성할 수 있어 편하다.
+
+ie11도 지원.
+
+설치 : `npm i immer`
+
+### 예제
+이전 : `state.mainPosts : [dummyPost(action.data), ...state.mainPosts]`
+이후 : `draft.mainPosts.unshift(dummyPost(action.data));`
+
+이전
+```javascipt
+case ADD_COMMENT_SUCCESS:
+    const postIndex = state.mainPosts.findIndex((v) => v.id !== action.data); // 게시글의 id로 게시글 index 찾기
+    const post = { ...state.mainPosts[postIndex] };
+    post.Comments = [dummyComment(action.data.content), ...post.Comments];
+    const mainPosts = [...state.mainPosts];
+    mainPosts[postIndex] = post;
+    return {
+        ...state,
+        mainPosts,
+        addCommentLoading: false,
+        addCommentDone: true,
+    }
+```
+
+이후
+```javascript
+case ADD_COMMENT_SUCCESS:
+    const post = draft.mainPosts.find((v) => v.id === action.data.postId);
+    post.Comments.unshift(dummyComment(action.data.content));
+    draft.addCommentLoading = false;
+    draft.addCommentDone = true;
+```
+
+# faker로 실감나는 더미데이터 만들기
+`npm i -D faker@5`
+
+더미 이미지
+* placeholder.com : 이미지 크기만 있고, 크기에 맞게 공간 차지
+
+```javascript
+initialState.mainPosts = initialState.mainPosts.concat(
+    Array(20).fill().map(() => ({
+        id: shortId.generate(),
+        User: {
+            id: shortId.generate(),
+            nickname: faker.name.findName()
+        },
+        content: faker.lorem.paragraph(),
+        Images: [{
+            src: faker.image.imageUrl(),
+        }],
+        Comments: [{
+            User: {
+                id: shortId.generate(),
+                nickname: faker.name.findName()
+            },
+            content: faker.lorem.sentence(),
+        }],
+    }))
+);
+```
+
+### 효과
+백엔드가 만들어지지 않아도 더미데이터를 통해 **프론트를 미리 구현**할 수 있다.
+* 데이터 구조는 미리 협의 필요.
+
+더미 데이터를 만들면 **성능 테스트**를 쉽게 할 수 있다.
+* 수천개의 데이터 추가새 성능 테스트
+* 무한 스크롤링 테스트
+
+### 리다이렉트
+
+```javascript
+import Router from 'next/router';
+
+Router.push('/'); // redirect
+```
+
+### redux-toolkit : to do list
+redux 공식팀에서 간단하게 코드를 짤 수 있게 제공
+* ex) `switch` 문을 줄일 수 있음
+
+# 인피니트 스크롤링 적용하기
+무한 스크롤링 : 스크롤 할 때마다 서버에서 특정 단위로 데이터를 가져오는 것.
+### 스크롤시 추가할 게시글 더미 데이터 생성
+reducer > post.js > generateDummyPost()
+* 서버에서 불러오는 것을 대체
+* faker, shortId 사용
+
+### 로드시 게시글 호출
+* 메인 페이지가 로드되면 게시글이 최초 한번 호출
+  * useEffect 사용(pages > index.js)
+
+### scroll detecting
+* useEffect 사용(pages > index.js)
+* 현재 끝 지점 전 300px 앞에서 게시글 로딩 호출
+* 중복 호출 문제 발생 : 아래 두개를 사용해 해결
+  1. `throttle`를 사용(sagas > post.js)
+     * 지정된 시간 동안 한번만 실행하도록 수정.
+     * 단점 : 응답을 차단하지 요청은 차단하지 않는다. 따라서 호출된 요청은 무조건 처리한다.
+  2. 처음 부터 요청을 보내지 않도록 조건문 추가(pages > index.js : 조건 추가, sagas > post.js : 상태 관리)
+     * `hasMorePost`, `loadingPostLoading` 사용
+
+
+### react-virtualized : to do list
+스크롤을 많이해서 화면에 너무 많은 게시글이 렌더링되면 메모리가 터져버릴 수 있음.(특히 모바일) 이때 react-virtualized를 사용하면 됨.
+* 화면에 보이는 맥시멈 개수의 게시글만 화면에 보여주고 나머지는 메모리에 저장시킴
