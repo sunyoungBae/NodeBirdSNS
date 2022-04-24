@@ -327,3 +327,5 @@ reducer > post.js > generateDummyPost()
 ### react-virtualized : to do list
 스크롤을 많이해서 화면에 너무 많은 게시글이 렌더링되면 메모리가 터져버릴 수 있음.(특히 모바일) 이때 react-virtualized를 사용하면 됨.
 * 화면에 보이는 맥시멈 개수의 게시글만 화면에 보여주고 나머지는 메모리에 저장시킴
+
+# 팔로우, 언팔로우 구현하기
