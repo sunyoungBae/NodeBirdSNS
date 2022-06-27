@@ -1,16 +1,24 @@
 # 노드로 서버 구동하기
-프론트 서버
+> Node.js is a JavaScript runtime built on Chrome's V8 JavaScript engine.
+>
+> 노드는 서버가 아니다. javascirpt 를 실행해주는 도구이다.
+>
+> 노드를 사용할 때 `http` 모듈이 서버 역할을 한다.
+
+### 프론트 서버와 백엔드 서버
+
+#### 프론트 서버
 * server side rendering 담당
 * `next`를 사용해 서버를 띄움
   * `next`는 `node`를 사용해 서버를 띄움
 
-### 백엔드 서버
-* api 담당
+#### 백엔드 서버
+* api 제공
 * `node`를 사용해 서버를 올린다.
   * `node` : V8엔진을 사용해 Javascript 코드를 실행하는 것. `node`가 서버는 아니다.
     * 모듈을 사용해 서버를 띄움(`http`)
 
-프론트 서버와 백엔드 서버를 분리하는 이유?
+#### 프론트 서버와 백엔드 서버를 분리하는 이유?
 * 대규모 앱이 되었을 때를 대비
 * 특정 기능에 데이터가 몰릴 때
   * 분리  : 각 기능별로 서버를 나누어서 그 기능만 서버 여러대를 늘리는 방식으로 해결.
@@ -177,6 +185,45 @@ module.exports = router;
 ```
 
 # MySQL과 시퀄라이즈 연결하기
+참고 링크 : https://thebook.io/080229/ch07/02/01/
+* Node.js 교과서 > 7.2.1 윈도
 
+다운로드(8버전)
+* MySQL Community Server
+* MySQL Workbench
 
-# 시퀄라이즈 모델 만들기
+### 시퀄라이즈 설치
+`npm i sequelize sequelize-cli mysql2`
+* mysql2 : `node`와 `MySQL`을 연결해주는 driver
+* sequelize : javascript로 SQL을 조작할 수 있게 해주는 라이브러리(SQL언어를 몰라도)
+
+### 시퀄라이즈 세팅
+`npx sequelize init`
+* config, midgrations, models, seeders 폴더가 생성됨
+* config/config.json에서 사용할 데이터 베이스의 값을 설정
+  * 개발, 테스트, 배포 데이터 베이스 설정을 따로 할 수 있음
+* models/index.js
+  * fs까지의 내용을 지우고 아래 코드를 추가
+    ```javascirpt
+    'use strict';
+    
+    const Sequelize = require('sequelize');
+    const env = process.env.NODE_ENV || 'development';
+    const config = require('../config/config')[env];  // config/config.json 객체에 접근. 기본값은 development
+    const db = {};
+    
+    // sequelize가 mysql2를 사용해 node와 MySQL을 연결시켜준다.
+    const sequelize = new Sequelize(config.database, config.username, config.password, config);
+    
+    Object.keys(db).forEach(modelName => {
+      if (db[modelName].associate) {
+        db[modelName].associate(db);
+      }
+    });
+    
+    db.sequelize = sequelize;
+    db.Sequelize = Sequelize;
+    
+    module.exports = db;
+    ```
+
